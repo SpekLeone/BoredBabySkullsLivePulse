@@ -116,25 +116,28 @@
     const ctx = canvas.getContext('2d', { alpha: false });
     const img = new Image();
     
-    // Config Metadata for URLs
+    // 1. Core Config Metadata 
     const CID = "QmNd3AkdLB1HcFNapYtsXwtkjSy1RYxZD9CF6nScDZGgDG";
-    const CONTRACT_ADDRESS = "0xC0F3C784124D19eCFD364ee1ae9818cd7c13d96c"; // Replace with your real contract address
+    const CONTRACT_ADDRESS = "0xC0F3C784124D19eCFD364ee1ae9818cd7c13d96c"; 
     const ID = "4";
-    
+    const EXTERNAL_HOST_URL = "https://mindp0wer.github.io/BoredBabySkullsLivePulse/";
+
+    // 2. Parse Dynamic URL Parameters BEFORE using them
+    const urlParams = new URLSearchParams(window.location.search);
+    const dynamicID = urlParams.get('id') || ID;
+
+    // 3. Set image asset source safely
     img.crossOrigin = "Anonymous";
-    img.src = `https://ipfs.io/ipfs/${CID}/BoredBabySkulls%20${ID}.png`;
+    img.src = `https://ipfs.io/ipfs/${CID}/BoredBabySkulls%20${dynamicID}.png`;
 
-    // Build the fallback link to open outside the Marketplace iframe sandbox
-    // (Points to OpenSea by default, but can be updated to point directly to your dedicated server URL)
-    document.getElementById('externalNFTLink').href = `https://opensea.io/assets/base/${CONTRACT_ADDRESS}/${ID}`;
-
+    // 4. Initialize Core State Engines
     let originalPixels = [];
     let isDataReady = false; 
     let currentWeather = "CLEAR";
     let weatherCode = 0;
     let windSpeed = 15;
     let manualHour = null;
-	let currentTemp = "--";
+    let currentTemp = "--";
     let rainDrops = [];
     let flashTimer = 0;
     let locationSource = "IDENTIFYING...";
@@ -148,8 +151,19 @@
     const imgData = ctx.createImageData(res, res);
     const d = imgData.data;
 
+    // Initialize environment particle positions
     for(let i=0; i<100; i++) {
         rainDrops.push({ x: Math.random() * res, y: Math.random() * res, v: 2 + Math.random() * 3, l: 4 + Math.random() * 4, sz: Math.floor(Math.random() * 2) + 1 });
+    }
+
+    // Set up iframe sandbox-busting click events safely
+    const statusOverlayContainer = document.getElementById('statusOverlay');
+    if (statusOverlayContainer) {
+        statusOverlayContainer.style.cursor = "pointer";
+        statusOverlayContainer.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.open(`${EXTERNAL_HOST_URL}?id=${dynamicID}`, '_blank');
+        });
     }
 
     // Toggle Dashboard View
@@ -172,7 +186,6 @@
                 currentLon = target.longitude;
                 locationSource = `${target.name.toUpperCase()}`;
                 
-                // Prefill details in coordinate rows
                 document.getElementById('inputLat').value = currentLat.toFixed(4);
                 document.getElementById('inputLon').value = currentLon.toFixed(4);
                 
@@ -212,8 +225,6 @@
             
             windSpeed = Math.round(d.current_weather.windspeed);
             weatherCode = d.current_weather.weathercode;
-            
-            // Extract temperature and round it to a clean whole number
             currentTemp = Math.round(d.current_weather.temperature); 
             
             if(document.getElementById('windSlider')) {
@@ -375,7 +386,6 @@
 
     function drawStatus(displayTime) {
         if (!overlayLink) return;
-        // Displays clean string: WEATHER // TIME // TEMP // WINDSPEED // LOCATION NAME
         overlayLink.innerText = `${currentWeather} // ${displayTime} // ${currentTemp}°C // ${windSpeed} KM/H // ${locationSource}`;
     }
 
@@ -398,7 +408,7 @@
         const hour = (manualHour !== null) ? manualHour : now.getHours();
         const displayTime = (manualHour !== null) ? hour + ":00" : now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         
-        document.title = `BBS #${ID} | ${currentWeather}`;
+        document.title = `BBS #${dynamicID} | ${currentWeather}`;
         const colorAngle = (time * 0.002);
 
         let shiver = 1.1;
