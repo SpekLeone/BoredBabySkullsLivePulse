@@ -106,10 +106,12 @@
 
     <div class="container">
         <canvas id="nftCanvas" width="128" height="128"></canvas>
-        <div id="statusOverlay"><a href="#" id="externalNFTLink" target="_blank">SYNCING...</a></div>
+        <div id="statusOverlay">
+            <a href="#" id="externalNFTLink" target="_blank">SYNCING...</a>
+        </div>
     </div>
 
-   <script>
+    <script>
     const res = 128;
     const canvas = document.getElementById('nftCanvas');
     const overlayLink = document.getElementById('externalNFTLink');
@@ -126,9 +128,9 @@
     const urlParams = new URLSearchParams(window.location.search);
     const dynamicID = urlParams.get('id') || ID;
 
-    // 3. Set image asset source safely
+    // 3. Set image asset source safely with an explicit gateway cache-buster fallback
     img.crossOrigin = "Anonymous";
-    img.src = `https://ipfs.io/ipfs/${CID}/BoredBabySkulls%20${dynamicID}.png`;
+    img.src = `https://gateway.pinata.cloud/ipfs/${CID}/BoredBabySkulls%20${dynamicID}.png?t=${Date.now()}`;
 
     // 4. Initialize Core State Engines
     let originalPixels = [];
@@ -156,14 +158,9 @@
         rainDrops.push({ x: Math.random() * res, y: Math.random() * res, v: 2 + Math.random() * 3, l: 4 + Math.random() * 4, sz: Math.floor(Math.random() * 2) + 1 });
     }
 
-    // Set up iframe sandbox-busting click events safely
-    const statusOverlayContainer = document.getElementById('statusOverlay');
-    if (statusOverlayContainer) {
-        statusOverlayContainer.style.cursor = "pointer";
-        statusOverlayContainer.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.open(`${EXTERNAL_HOST_URL}?id=${dynamicID}`, '_blank');
-        });
+    // Set target dynamic link immediately to establish direct breakout pathways
+    if (overlayLink) {
+        overlayLink.href = `${EXTERNAL_HOST_URL}?id=${dynamicID}`;
     }
 
     // Toggle Dashboard View
