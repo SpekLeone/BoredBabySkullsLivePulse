@@ -31,36 +31,34 @@
         }
         canvas { image-rendering: pixelated; width: 100%; height: 100%; border: 1px solid #333; }
 
-        /* Interactive Ticker Overlay Styling */
+        /* Interactive Ticker Overlay Styling (Fully Auto-Responsive) */
         #statusOverlay {
             position: absolute;
             bottom: 0.5cqi;
             right: 0.5cqi;
-            background: rgba(0, 0, 0, 0.85);
+            left: 0.5cqi; /* Explicitly anchors the left edge to prevent blowout */
+            background: rgba(0, 0, 0, 0.9);
             border: 0.25cqi solid #0f0;
-            pointer-events: auto; /* Keeps ticker clickable */
             z-index: 90;
-            padding: 1.5cqi 2.2cqi;
+            padding: 1.5cqi 2cqi;
             box-sizing: border-box;
             border-radius: 0.8cqi;
-            white-space: nowrap;
-        }
-        #statusOverlay a {
+            
+            /* Responsive Text System */
             color: #0f0;
-            font-size: 2.2cqi;
+            font-size: 2.1cqi;
             text-transform: uppercase;
-            letter-spacing: 0.2cqi;
-            text-decoration: none;
+            letter-spacing: 0.15cqi;
             font-family: monospace;
             font-weight: bold;
             text-shadow: 0 0 3px rgba(0, 255, 0, 0.5);
-            display: block;
+            
+            /* Layout Overwrite Rules */
+            white-space: normal;       /* Allows words to wrap to line 2 instead of pushing out */
+            word-break: break-word;    /* Forces long names to break safely if needed */
+            text-align: center;        /* Centers your instrumentation array beautifully */
         }
-        #statusOverlay a:hover {
-            color: #fff;
-            text-shadow: 0 0 8px #0f0;
-        }
-    </style>
+</style>
 </head>
 <body>
 
@@ -106,29 +104,26 @@
 
     <div class="container">
         <canvas id="nftCanvas" width="128" height="128"></canvas>
-        <div id="statusOverlay">
-            <a href="#" id="externalNFTLink" target="_blank">SYNCING...</a>
-        </div>
+        <div id="statusOverlay">IDENTIFYING...</div>
     </div>
 
     <script>
     const res = 128;
     const canvas = document.getElementById('nftCanvas');
-    const overlayLink = document.getElementById('externalNFTLink');
+    const overlayStatus = document.getElementById('statusOverlay');
     const ctx = canvas.getContext('2d', { alpha: false });
     const img = new Image();
     
     // 1. Core Config Metadata 
     const CID = "QmNd3AkdLB1HcFNapYtsXwtkjSy1RYxZD9CF6nScDZGgDG";
     const CONTRACT_ADDRESS = "0xC0F3C784124D19eCFD364ee1ae9818cd7c13d96c"; 
-    const ID = "4"; // Default baseline asset 
-    const EXTERNAL_HOST_URL = "https://mindp0wer.github.io/BoredBabySkullsLivePulse/";
+    const ID = "4"; 
 
-    // 2. Parse Dynamic URL Parameters with Case Insensitivity Check
+    // 2. Parse Dynamic URL Parameters 
     const urlParams = new URLSearchParams(window.location.search);
     const dynamicID = urlParams.get('id') || urlParams.get('ID') || urlParams.get('Id') || ID;
 
-    // 3. Set image asset source safely without breaking gateway cache targets
+    // 3. Set image asset source safely 
     img.crossOrigin = "Anonymous";
     img.src = `https://gateway.pinata.cloud/ipfs/${CID}/BoredBabySkulls%20${dynamicID}.png`;
 
@@ -158,11 +153,6 @@
         rainDrops.push({ x: Math.random() * res, y: Math.random() * res, v: 2 + Math.random() * 3, l: 4 + Math.random() * 4, sz: Math.floor(Math.random() * 2) + 1 });
     }
 
-    // Set target dynamic link immediately to establish direct breakout pathways
-    if (overlayLink) {
-        overlayLink.href = `${EXTERNAL_HOST_URL}?id=${dynamicID}`;
-    }
-
     // Toggle Dashboard View
     function toggleDashboard() {
         const panel = document.getElementById('locationDashboard');
@@ -171,29 +161,69 @@
 
     // Custom Location Mode 1: Search by text input city string
     async function searchByCityName() {
-        const query = document.getElementById('inputCity').value.trim();
-        if(!query) return;
-        try {
-            overlayLink.innerText = "SEARCHING...";
-            const resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
-            const data = await resVal.json();
-            if(data.results && data.results.length > 0) {
-                const target = data.results[0];
-                currentLat = target.latitude;
-                currentLon = target.longitude;
-                locationSource = `${target.name.toUpperCase()}`;
+    let rawQuery = document.getElementById('inputCity').value;
+    if(!rawQuery) return;
+    
+    // 1. Wipe out invisible soft hyphens and normalize spacing
+    let query = rawQuery.replace(/\u00ad/g, '').trim();
+    if(!query) return;
+    
+    try {
+        if(overlayStatus) overlayStatus.innerText = "SEARCHING...";
+        
+        // 2. Try an exact look-up with the user's string as-is first
+        let resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
+        if (!resVal.ok) throw new Error("API Server Error");
+        let data = await resVal.json();
+        
+        // 3. EUROPEAN & UMLAUT SHIELD: If it fails, normalize spelling variations (e.g., fuerstenfeldbruck -> furstenfeldbruck)
+        if (!data.results || data.results.length === 0) {
+            let normalized = query.toLowerCase()
+                .replace(/ue/g, 'u')
+                .replace(/ae/g, 'a')
+                .replace(/oe/g, 'o')
+                .replace(/ss/g, 's');
                 
-                document.getElementById('inputLat').value = currentLat.toFixed(4);
-                document.getElementById('inputLon').value = currentLon.toFixed(4);
-                
-                await fetchWeather(currentLat, currentLon);
-            } else {
-                overlayLink.innerText = "CITY NOT FOUND";
-            }
-        } catch(err) {
-            overlayLink.innerText = "SEARCH ERROR";
+            resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(normalized)}&count=1&language=en&format=json`);
+            if (resVal.ok) data = await resVal.json();
         }
+
+        // 4. LONG-WORD EXTRACTION SHIELD: If it STILL fails and it's a massive place name, find the root word
+        if ((!data.results || data.results.length === 0) && query.length > 12) {
+            let fallbackSearch = query;
+            if (/[\s\-]+/.test(query)) {
+                fallbackSearch = query.split(/[\s\-]+/)[0];
+            } else {
+                fallbackSearch = query.substring(0, 12);
+            }
+            
+            resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(fallbackSearch)}&count=1&language=en&format=json`);
+            if (resVal.ok) data = await resVal.json();
+        }
+
+        // 5. Render standard response payload onto the canvas ticker
+        if(data.results && data.results.length > 0) {
+            const target = data.results[0];
+            currentLat = target.latitude;
+            currentLon = target.longitude;
+            
+            if (query.length > 16) {
+                locationSource = query.substring(0, 14).toUpperCase() + "..";
+            } else {
+                locationSource = query.toUpperCase();
+            }
+            
+            document.getElementById('inputLat').value = currentLat.toFixed(4);
+            document.getElementById('inputLon').value = currentLon.toFixed(4);
+            
+            await fetchWeather(currentLat, currentLon);
+        } else {
+            if(overlayStatus) overlayStatus.innerText = "LOCATION NOT FOUND";
+        }
+    } catch(err) {
+        if(overlayStatus) overlayStatus.innerText = "API ERROR - TRY SHORT NAME";
     }
+}
 
     // Custom Location Mode 2: Force exact geographic coordinate numbers
     async function searchByCoordinates() {
@@ -334,7 +364,6 @@
         isDataReady = tryHarvestPixels();
         try { userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; } catch(e) {}
 
-        // Skip geolocation if trapped inside an iframe sandbox environment to avoid loop crashes
         const isIframe = window.self !== window.top;
 
         if (navigator.geolocation && !isIframe) {
@@ -384,12 +413,142 @@
     function setTime(h) { manualHour = h; }
     function wrap(val, max) { return ((val % max) + max) % max; }
 
-    function drawStatus(displayTime) {
-        if (!overlayLink) return;
-        overlayLink.innerText = `${currentWeather} // ${displayTime} // ${currentTemp}°C // ${windSpeed} KM/H // ${locationSource}`;
+    function getWeatherSymbol(weather, hour, code) {
+    if (weather === "CLEAR") {
+        return (hour >= 6 && hour < 19) ? "☀️" : "🌙";
+    }
+    if (weather === "RAIN") {
+        // code 65 is our Heavy Rain setting
+        return (code >= 65) ? "🌧️" : "🌦️"; 
+    }
+    switch (weather) {
+        case "CLOUDY": return "☁️";
+        case "STORM":  return "⚡";
+        case "SNOW":   return "❄️";
+        case "FOG":    return "🌫️";
+        default:       return "🌐";
+    }
+}
+
+function drawStatus(displayTime) {
+    if (!overlayStatus) return;
+    
+    const now = new Date();
+    const hour = (manualHour !== null) ? manualHour : now.getHours();
+    
+    // Pass the weatherCode into the symbol generator
+    const symbol = getWeatherSymbol(currentWeather, hour, weatherCode);
+    
+    overlayStatus.innerText = `${symbol} ${currentWeather} // 🕒 ${displayTime} // 🌡️ ${currentTemp}°C // 💨 ${windSpeed} KM/H // 📍 ${locationSource}`;
+}
+
+    function drawWeatherAccessories(topColor, bottomColor) {
+    const now = new Date();
+    const hour = (manualHour !== null) ? manualHour : now.getHours();
+    const isDaytime = (hour >= 6 && hour < 19);
+
+    // --- PHYSICS & ENVIRONMENT SYNC ---
+    const activeShiver = (typeof shiverY !== 'undefined') ? shiverY : 0;
+    
+    const eyeRowY = 63 + activeShiver;
+    const foreheadRowY = 46 + activeShiver;
+
+    // Determine target vertical alignment based on current scene state
+    let targetY = eyeRowY;
+    if (currentWeather === "CLEAR") {
+        targetY = isDaytime ? eyeRowY : foreheadRowY;
+    } else if (currentWeather === "CLOUDY" || currentWeather === "FOG") {
+        targetY = foreheadRowY;
     }
 
-    function drawBolt() {
+    // Define spatial parameters for the lenses
+    let leftX = 50;
+    let rightX = 67;
+    let slitY = targetY + 4;
+    let slitW = 9;
+    let slitH = 3;
+
+    // --- CREATE THE DYNAMIC GRADIENT FILL STYLE ---
+    let dynamicGradient = ctx.createLinearGradient(0, 0, 0, res);
+    dynamicGradient.addColorStop(0, topColor || "#ffaa00");
+    dynamicGradient.addColorStop(1, bottomColor || "#1a0033");
+
+    // ==========================================
+    // DYNAMIC PASTEL PALETTE SELECTOR
+    // ==========================================
+    let frameColor = "#FCE1E4"; // Default fallback: Pastel Rose
+    
+    switch (currentWeather) {
+        case "CLEAR":
+            // Warm, sun-kissed pastel yellow for day; soft twilight lavender for night
+            frameColor = isDaytime ? "#FCF6BD" : "#E8D7FF";
+            break;
+        case "CLOUDY":
+            frameColor = "#D6E2E9"; // Soft Misty Blue-Gray
+            break;
+        case "RAIN":
+            frameColor = "#A9DEF9"; // Fresh Pastel Sky Blue
+            break;
+        case "STORM":
+            frameColor = "#E4C1F9"; // Electric Lilac / Cosmic Purple
+            break;
+        case "SNOW":
+            frameColor = "#F0F3F4"; // Crisp Powder/Ice White
+            break;
+        case "FOG":
+            frameColor = "#E0E2E5"; // Muted Alabaster Gray
+            break;
+    }
+
+    // ==========================================
+    // DRAW GLASSES FRAME (ADDITIVE CURVY PIXELS)
+    // ==========================================
+    ctx.fillStyle = frameColor;
+    
+    // --- LEFT EYE FRAME (ROUNDED PATH) ---
+    ctx.fillRect(49, targetY, 11, 1);                  // Top row
+    ctx.fillRect(48, targetY + 1, 13, 9);              // Main middle body
+    ctx.fillRect(49, targetY + 10, 11, 1);             // Bottom row
+    
+    // --- RIGHT EYE FRAME (ROUNDED PATH) ---
+    ctx.fillRect(66, targetY, 11, 1);                  // Top row
+    ctx.fillRect(65, targetY + 1, 13, 9);              // Main middle body
+    ctx.fillRect(66, targetY + 10, 11, 1);             // Bottom row
+
+    // --- SYMMETRICAL TOP BRIDGE BAR ---
+    ctx.fillRect(61, targetY, 4, 4); 
+
+    // ==========================================
+    // RENDER LENSES WITH DYNAMIC BACKDROP
+    // ==========================================
+    ctx.fillStyle = dynamicGradient; 
+    ctx.fillRect(leftX, slitY, slitW, slitH);
+    ctx.fillRect(rightX, slitY, slitW, slitH);
+
+    // --- 🌦️/🌧️ RAIN WEATHER WIPERS ---
+    if (currentWeather === "RAIN") {
+        let rainSeverity = (weatherCode >= 65) ? 2.0 : 1.0;
+        let speedFactor = (0.015 + (windSpeed * 0.0008)) * rainSeverity;
+        let totalWidthTicks = 16; 
+        let currentTick = Math.floor(Date.now() * speedFactor) % totalWidthTicks;
+        let wiperX = (currentTick <= 8) ? currentTick : (totalWidthTicks - currentTick);
+        
+        ctx.fillStyle = "#ffffff"; 
+        ctx.fillRect(50 + wiperX, eyeRowY + 4, 1, 3); 
+        ctx.fillRect(67 + wiperX, eyeRowY + 4, 1, 3); 
+    }
+
+    // --- ⚡ STORM WEATHER SPARKS ---
+    if (currentWeather === "STORM") {
+        if (flashTimer > 0) {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(50 + Math.random()*7, eyeRowY + 4 + Math.random()*2, 2, 1);
+            ctx.fillRect(67 + Math.random()*7, eyeRowY + 4 + Math.random()*2, 2, 1);
+        }
+    }
+}
+	
+	function drawBolt() {
         ctx.strokeStyle = "white"; let x = Math.random() * res; let y = 0;
         for(let i=0; i<4; i++) {
             ctx.lineWidth = Math.max(0.5, 4 - i); ctx.beginPath(); ctx.moveTo(x, y);
@@ -443,7 +602,21 @@
                 tIdx += 4;
             }
         }
+
+        // --- NEW GRADIENT DETECTOR LOGIC ---
+        // Top edge color sampling index (x: 64, y: 0)
+        let topIndex = (0 * res + 64) * 4;
+        let topColor = `rgb(${Math.floor(d[topIndex])}, ${Math.floor(d[topIndex+1])}, ${Math.floor(d[topIndex+2])})`;
+
+        // Bottom edge color sampling index (x: 64, y: 127)
+        let bottomIndex = ((res - 1) * res + 64) * 4;
+        let bottomColor = `rgb(${Math.floor(d[bottomIndex])}, ${Math.floor(d[bottomIndex+1])}, ${Math.floor(d[bottomIndex+2])})`;
+
+        // Commit the pixel buffer values directly onto the canvas view
         ctx.putImageData(imgData, 0, 0);
+        
+        // Pass the sampled upper and lower gradient strings right to the accessories drawer
+        drawWeatherAccessories(topColor, bottomColor);
 
         if (currentWeather === "RAIN" || currentWeather === "STORM") {
             ctx.strokeStyle = "rgba(180, 220, 255, 0.7)"; ctx.lineWidth = 1;
