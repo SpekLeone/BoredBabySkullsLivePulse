@@ -121,16 +121,16 @@
     // 1. Core Config Metadata 
     const CID = "QmNd3AkdLB1HcFNapYtsXwtkjSy1RYxZD9CF6nScDZGgDG";
     const CONTRACT_ADDRESS = "0xC0F3C784124D19eCFD364ee1ae9818cd7c13d96c"; 
-    const ID = "4";
+    const ID = "4"; // Default baseline asset 
     const EXTERNAL_HOST_URL = "https://mindp0wer.github.io/BoredBabySkullsLivePulse/";
 
-    // 2. Parse Dynamic URL Parameters BEFORE using them
+    // 2. Parse Dynamic URL Parameters with Case Insensitivity Check
     const urlParams = new URLSearchParams(window.location.search);
-    const dynamicID = urlParams.get('id') || ID;
+    const dynamicID = urlParams.get('id') || urlParams.get('ID') || urlParams.get('Id') || ID;
 
-    // 3. Set image asset source safely with an explicit gateway cache-buster fallback
+    // 3. Set image asset source safely without breaking gateway cache targets
     img.crossOrigin = "Anonymous";
-    img.src = `https://gateway.pinata.cloud/ipfs/${CID}/BoredBabySkulls%20${dynamicID}.png?t=${Date.now()}`;
+    img.src = `https://gateway.pinata.cloud/ipfs/${CID}/BoredBabySkulls%20${dynamicID}.png`;
 
     // 4. Initialize Core State Engines
     let originalPixels = [];
@@ -175,8 +175,8 @@
         if(!query) return;
         try {
             overlayLink.innerText = "SEARCHING...";
-            const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
-            const data = await res.json();
+            const resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
+            const data = await resVal.json();
             if(data.results && data.results.length > 0) {
                 const target = data.results[0];
                 currentLat = target.latitude;
@@ -218,11 +218,11 @@
         try {
             const encodeTZ = encodeURIComponent(userTimezone);
             const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=${encodeTZ}`);
-            const d = await r.json();
+            const data = await r.json();
             
-            windSpeed = Math.round(d.current_weather.windspeed);
-            weatherCode = d.current_weather.weathercode;
-            currentTemp = Math.round(d.current_weather.temperature); 
+            windSpeed = Math.round(data.current_weather.windspeed);
+            weatherCode = data.current_weather.weathercode;
+            currentTemp = Math.round(data.current_weather.temperature); 
             
             if(document.getElementById('windSlider')) {
                 document.getElementById('windSlider').value = windSpeed;
@@ -267,7 +267,7 @@
                 else if (lang.startsWith('da')) { currentLat = 55.6761; currentLon = 12.5683; locationSource = "COPENHAGEN"; }
                 else if (lang.startsWith('fi')) { currentLat = 60.1699; currentLon = 24.9384; locationSource = "HELSINKI"; }
                 else if (lang.startsWith('ar')) { currentLat = 30.0444; currentLon = 31.2357; locationSource = "CAIRO"; }
-                else if (lang.startsWith('af') || lang.includes('za')) { currentLat = -26.2041; currentLon = 28.0473; locationSource = "JOHANNESBURG"; }
+                else if (lang.includes('za')) { currentLat = -26.2041; currentLon = 28.0473; locationSource = "JOHANNESBURG"; }
                 else { currentLat = 50.8504; currentLon = 4.3488; locationSource = "BRUSSELS"; }
             } else if (hoursOffset === 3) {
                 if (lang.startsWith('el')) { currentLat = 37.9838; currentLon = 23.7275; locationSource = "ATHENS"; }
@@ -334,7 +334,10 @@
         isDataReady = tryHarvestPixels();
         try { userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; } catch(e) {}
 
-        if (navigator.geolocation) {
+        // Skip geolocation if trapped inside an iframe sandbox environment to avoid loop crashes
+        const isIframe = window.self !== window.top;
+
+        if (navigator.geolocation && !isIframe) {
             navigator.geolocation.getCurrentPosition(
                 async (pos) => {
                     currentLat = pos.coords.latitude;
@@ -434,7 +437,7 @@
                 let avg = (cp.r + cp.g + cp.b) / 3;
                 
                 d[tIdx]     = (cp.r * mod.sat + avg * (1 - mod.sat)) * mod.r; 
-                d[tIdx + 1] = (cp.g * mod.sat + avg * (1 - mod.sat)) * mod.r; 
+                d[tIdx + 1] = (cp.g * mod.sat + avg * (1 - mod.sat)) * mod.g; 
                 d[tIdx + 2] = (cp.b * mod.sat + avg * (1 - mod.sat)) * mod.b; 
                 d[tIdx + 3] = 255;                                            
                 tIdx += 4;
