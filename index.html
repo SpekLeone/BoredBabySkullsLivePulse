@@ -4,21 +4,101 @@
     <meta charset="UTF-8">
     <title>BBS LIVE PULSE</title>
     <style>
-        body { background: #000; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
+        body { 
+            background: #000; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            overflow: hidden; 
+            font-family: sans-serif; 
+        }
         
-        /* Control Panel Styles */
-        #controls { position: absolute; top: 20px; z-index: 100; background: rgba(0,0,0,0.9); padding: 15px; border: 1px solid #0f0; color: #0f0; font-size: 11px; border-radius: 4px; opacity: 0; transition: 0.4s; pointer-events: none; max-width: 90vw;}
-        body:hover #controls { opacity: 1; pointer-events: auto; }
-        .group { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
-        button { background: #111; border: 1px solid #0f0; color: #0f0; padding: 4px 8px; cursor: pointer; font-size: 10px; text-transform: uppercase; }
-        button:hover { background: #0f0; color: #000; }
-        #windSlider { width: 100px; accent-color: #0f0; cursor: ew-resize; }
+        /* Control Panel - OVERLAID ON THE IMAGE + HIDDEN UNTIL HOVER / TOUCH */
+        #controls {
+            position: absolute;
+            top: 2cqi;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(0,0,0,0.92);
+            padding: 2.5cqi 3cqi;
+            border: 1px solid #0f0;
+            color: #0f0;
+            font-size: 2.1cqi;
+            border-radius: 1.5cqi;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+            max-width: 92cqi;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        /* Desktop hover (instant show/hide) */
+        body:hover #controls {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .group { 
+            display: flex; 
+            gap: 1.5cqi; 
+            align-items: center; 
+            margin-bottom: 2cqi; 
+            flex-wrap: wrap; 
+            justify-content: center;
+        }
+        button { 
+            background: #111; 
+            border: 1px solid #0f0; 
+            color: #0f0; 
+            padding: 0.8cqi 1.8cqi; 
+            cursor: pointer; 
+            font-size: 1.8cqi; 
+            text-transform: uppercase; 
+            border-radius: 0.5cqi;
+        }
+        button:hover { 
+            background: #0f0; 
+            color: #000; 
+        }
+        #windSlider { 
+            width: 22cqi; 
+            accent-color: #0f0; 
+            cursor: ew-resize; 
+        }
         
         /* Manual Location UI Overlay Dashboard */
-        #locationDashboard { background: rgba(10, 25, 10, 0.95); border-top: 1px dashed #0f0; padding-top: 10px; margin-top: 5px; display: none; }
-        .input-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-        .input-row input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 3px; font-size: 11px; font-family: monospace; width: 110px; }
-        .input-row label { font-size: 10px; width: 50px; display: inline-block; }
+        #locationDashboard { 
+            background: rgba(10, 25, 10, 0.95); 
+            border-top: 1px dashed #0f0; 
+            padding-top: 2cqi; 
+            margin-top: 1cqi; 
+            display: none; 
+        }
+        .input-row { 
+            display: flex; 
+            gap: 1.5cqi; 
+            margin-bottom: 1.5cqi; 
+            align-items: center; 
+        }
+        .input-row input { 
+            background: #000; 
+            border: 1px solid #0f0; 
+            color: #0f0; 
+            padding: 1cqi; 
+            font-size: 1.8cqi; 
+            font-family: monospace; 
+            width: 22cqi; 
+        }
+        .input-row label { 
+            font-size: 1.6cqi; 
+            width: 9cqi; 
+            display: inline-block; 
+        }
 
         /* Container wrapper ensures the overlay scales relative to the image size */
         .container {
@@ -29,14 +109,19 @@
             max-width: 100vh;
             max-height: 100vh;
         }
-        canvas { image-rendering: pixelated; width: 100%; height: 100%; border: 1px solid #333; }
+        canvas { 
+            image-rendering: pixelated; 
+            width: 100%; 
+            height: 100%; 
+            border: 1px solid #333; 
+        }
 
-        /* Interactive Ticker Overlay Styling (Fully Auto-Responsive) */
+        /* Interactive Ticker Overlay Styling */
         #statusOverlay {
             position: absolute;
             bottom: 0.5cqi;
             right: 0.5cqi;
-            left: 0.5cqi; /* Explicitly anchors the left edge to prevent blowout */
+            left: 0.5cqi;
             background: rgba(0, 0, 0, 0.9);
             border: 0.25cqi solid #0f0;
             z-index: 90;
@@ -44,7 +129,6 @@
             box-sizing: border-box;
             border-radius: 0.8cqi;
             
-            /* Responsive Text System */
             color: #0f0;
             font-size: 2.1cqi;
             text-transform: uppercase;
@@ -53,57 +137,58 @@
             font-weight: bold;
             text-shadow: 0 0 3px rgba(0, 255, 0, 0.5);
             
-            /* Layout Overwrite Rules */
-            white-space: normal;       /* Allows words to wrap to line 2 instead of pushing out */
-            word-break: break-word;    /* Forces long names to break safely if needed */
-            text-align: center;        /* Centers your instrumentation array beautifully */
+            white-space: normal;
+            word-break: break-word;
+            text-align: center;
         }
-</style>
+    </style>
 </head>
 <body>
 
-    <div id="controls">
-        <div class="group">
-            <strong>WEATHER:</strong>
-            <button onclick="setWeather('CLEAR', 0)">CLEAR</button>
-            <button onclick="setWeather('CLOUDY', 3)">CLOUDY</button>
-            <button onclick="setWeather('RAIN', 61)">LIGHT RAIN</button>
-            <button onclick="setWeather('RAIN', 65)">HEAVY RAIN</button>
-            <button onclick="setWeather('SNOW', 71)">SNOW</button>
-            <button onclick="setWeather('STORM', 95)">STORM</button>
-            <button onclick="setWeather('FOG', 45)">FOG</button>
-        </div>
-        <div class="group">
-            <strong>TIME:</strong>
-            <button onclick="setTime(8)">MORNING</button>
-            <button onclick="setTime(14)">AFTERNOON</button>
-            <button onclick="setTime(19)">EVENING</button>
-            <button onclick="setTime(23)">NIGHT</button>
-            <button onclick="location.reload()" style="font-weight:bold; background:#0f0; color:#000;">SYNC LIVE</button>
-            <button onclick="toggleDashboard()">MANUAL SEARCH</button>
-        </div>
-        <div class="group">
-            <strong>WIND:</strong>
-            <input type="range" min="-100" max="100" value="15" id="windSlider" oninput="windSpeed = parseInt(this.value)">
-        </div>
-
-        <div id="locationDashboard">
-            <div class="input-row">
-                <label>BY CITY:</label>
-                <input type="text" id="inputCity" placeholder="e.g. Hasselt, Tokyo">
-                <button onclick="searchByCityName()">GO</button>
-            </div>
-            <div class="input-row">
-                <label>COORDS:</label>
-                <input type="text" id="inputLat" placeholder="Latitude" style="width:50px;">
-                <input type="text" id="inputLon" placeholder="Longitude" style="width:50px;">
-                <button onclick="searchByCoordinates()">SET</button>
-            </div>
-        </div>
-    </div>
-
     <div class="container">
         <canvas id="nftCanvas" width="128" height="128"></canvas>
+        
+        <!-- Control panel overlaid directly on the image -->
+        <div id="controls">
+            <div class="group">
+                <strong>WEATHER:</strong>
+                <button onclick="setWeather('CLEAR', 0)">CLEAR</button>
+                <button onclick="setWeather('CLOUDY', 3)">CLOUDY</button>
+                <button onclick="setWeather('RAIN', 61)">LIGHT RAIN</button>
+                <button onclick="setWeather('RAIN', 65)">HEAVY RAIN</button>
+                <button onclick="setWeather('SNOW', 71)">SNOW</button>
+                <button onclick="setWeather('STORM', 95)">STORM</button>
+                <button onclick="setWeather('FOG', 45)">FOG</button>
+            </div>
+            <div class="group">
+                <strong>TIME:</strong>
+                <button onclick="setTime(8)">MORNING</button>
+                <button onclick="setTime(14)">AFTERNOON</button>
+                <button onclick="setTime(19)">EVENING</button>
+                <button onclick="setTime(23)">NIGHT</button>
+                <button onclick="location.reload()" style="font-weight:bold; background:#0f0; color:#000;">SYNC LIVE</button>
+                <button onclick="toggleDashboard()">MANUAL SEARCH</button>
+            </div>
+            <div class="group">
+                <strong>WIND:</strong>
+                <input type="range" min="-100" max="100" value="15" id="windSlider" oninput="windSpeed = parseInt(this.value)">
+            </div>
+
+            <div id="locationDashboard">
+                <div class="input-row">
+                    <label>BY CITY:</label>
+                    <input type="text" id="inputCity" placeholder="e.g. Hasselt, Tokyo">
+                    <button onclick="searchByCityName()">GO</button>
+                </div>
+                <div class="input-row">
+                    <label>COORDS:</label>
+                    <input type="text" id="inputLat" placeholder="Latitude" style="width:50px;">
+                    <input type="text" id="inputLon" placeholder="Longitude" style="width:50px;">
+                    <button onclick="searchByCoordinates()">SET</button>
+                </div>
+            </div>
+        </div>
+
         <div id="statusOverlay">IDENTIFYING...</div>
     </div>
 
@@ -114,20 +199,16 @@
     const ctx = canvas.getContext('2d', { alpha: false });
     const img = new Image();
     
-    // 1. Core Config Metadata 
+    // Core Config
     const CID = "QmNd3AkdLB1HcFNapYtsXwtkjSy1RYxZD9CF6nScDZGgDG";
-    const CONTRACT_ADDRESS = "0xC0F3C784124D19eCFD364ee1ae9818cd7c13d96c"; 
     const ID = "4"; 
 
-    // 2. Parse Dynamic URL Parameters 
     const urlParams = new URLSearchParams(window.location.search);
     const dynamicID = urlParams.get('id') || urlParams.get('ID') || urlParams.get('Id') || ID;
 
-    // 3. Set image asset source safely 
     img.crossOrigin = "Anonymous";
     img.src = `https://gateway.pinata.cloud/ipfs/${CID}/BoredBabySkulls%20${dynamicID}.png`;
 
-    // 4. Initialize Core State Engines
     let originalPixels = [];
     let isDataReady = false; 
     let currentWeather = "CLEAR";
@@ -148,99 +229,106 @@
     const imgData = ctx.createImageData(res, res);
     const d = imgData.data;
 
-    // Initialize environment particle positions
     for(let i=0; i<100; i++) {
         rainDrops.push({ x: Math.random() * res, y: Math.random() * res, v: 2 + Math.random() * 3, l: 4 + Math.random() * 4, sz: Math.floor(Math.random() * 2) + 1 });
     }
 
-    // Toggle Dashboard View
     function toggleDashboard() {
         const panel = document.getElementById('locationDashboard');
         panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
     }
 
-    // Custom Location Mode 1: Search by text input city string
-    async function searchByCityName() {
-    let rawQuery = document.getElementById('inputCity').value;
-    if(!rawQuery) return;
-    
-    // 1. Wipe out invisible soft hyphens and normalize spacing
-    let query = rawQuery.replace(/\u00ad/g, '').trim();
-    if(!query) return;
-    
-    try {
-        if(overlayStatus) overlayStatus.innerText = "SEARCHING...";
-        
-        // 2. Try an exact look-up with the user's string as-is first
-        let resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
-        if (!resVal.ok) throw new Error("API Server Error");
-        let data = await resVal.json();
-        
-        // 3. EUROPEAN & UMLAUT SHIELD: If it fails, normalize spelling variations (e.g., fuerstenfeldbruck -> furstenfeldbruck)
-        if (!data.results || data.results.length === 0) {
-            let normalized = query.toLowerCase()
-                .replace(/ue/g, 'u')
-                .replace(/ae/g, 'a')
-                .replace(/oe/g, 'o')
-                .replace(/ss/g, 's');
-                
-            resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(normalized)}&count=1&language=en&format=json`);
-            if (resVal.ok) data = await resVal.json();
-        }
+    // ====================== AUTO-HIDE CONTROLS (5 seconds) ======================
+    let controlHideTimeout = null;
 
-        // 4. LONG-WORD EXTRACTION SHIELD: If it STILL fails and it's a massive place name, find the root word
-        if ((!data.results || data.results.length === 0) && query.length > 12) {
-            let fallbackSearch = query;
-            if (/[\s\-]+/.test(query)) {
-                fallbackSearch = query.split(/[\s\-]+/)[0];
-            } else {
-                fallbackSearch = query.substring(0, 12);
-            }
-            
-            resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(fallbackSearch)}&count=1&language=en&format=json`);
-            if (resVal.ok) data = await resVal.json();
-        }
+    function initMobileControls() {
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 2;
+        if (!isTouchDevice) return;
 
-        // 5. Render standard response payload onto the canvas ticker
-        if(data.results && data.results.length > 0) {
-            const target = data.results[0];
-            currentLat = target.latitude;
-            currentLon = target.longitude;
-            
-            if (query.length > 16) {
-                locationSource = query.substring(0, 14).toUpperCase() + "..";
-            } else {
-                locationSource = query.toUpperCase();
+        const container = document.querySelector('.container');
+        const controls = document.getElementById('controls');
+
+        container.addEventListener('click', function(e) {
+            // Ignore clicks inside the control panel (so buttons still work)
+            if (e.target.closest('#controls')) return;
+
+            if (controlHideTimeout) {
+                clearTimeout(controlHideTimeout);
+                controlHideTimeout = null;
             }
-            
-            document.getElementById('inputLat').value = currentLat.toFixed(4);
-            document.getElementById('inputLon').value = currentLon.toFixed(4);
-            
-            await fetchWeather(currentLat, currentLon);
-        } else {
-            if(overlayStatus) overlayStatus.innerText = "LOCATION NOT FOUND";
-        }
-    } catch(err) {
-        if(overlayStatus) overlayStatus.innerText = "API ERROR - TRY SHORT NAME";
+
+            const currentlyVisible = controls.style.opacity === '1';
+
+            if (currentlyVisible) {
+                // Second tap → hide immediately
+                controls.style.opacity = '0';
+                controls.style.pointerEvents = 'none';
+            } else {
+                // First tap → show + start auto-hide timer
+                controls.style.opacity = '1';
+                controls.style.pointerEvents = 'auto';
+
+                controlHideTimeout = setTimeout(() => {
+                    controls.style.opacity = '0';
+                    controls.style.pointerEvents = 'none';
+                    controlHideTimeout = null;
+                }, 5000);   // ← 5 seconds auto-hide
+            }
+        });
     }
-}
 
-    // Custom Location Mode 2: Force exact geographic coordinate numbers
+    async function searchByCityName() {
+        let rawQuery = document.getElementById('inputCity').value;
+        if(!rawQuery) return;
+        let query = rawQuery.replace(/\u00ad/g, '').trim();
+        if(!query) return;
+        try {
+            if(overlayStatus) overlayStatus.innerText = "SEARCHING...";
+            let resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
+            if (!resVal.ok) throw new Error("API Server Error");
+            let data = await resVal.json();
+            if (!data.results || data.results.length === 0) {
+                let normalized = query.toLowerCase()
+                    .replace(/ue/g, 'u')
+                    .replace(/ae/g, 'a')
+                    .replace(/oe/g, 'o')
+                    .replace(/ss/g, 's');
+                resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(normalized)}&count=1&language=en&format=json`);
+                if (resVal.ok) data = await resVal.json();
+            }
+            if ((!data.results || data.results.length === 0) && query.length > 12) {
+                let fallbackSearch = /[\s\-]+/.test(query) ? query.split(/[\s\-]+/)[0] : query.substring(0, 12);
+                resVal = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(fallbackSearch)}&count=1&language=en&format=json`);
+                if (resVal.ok) data = await resVal.json();
+            }
+            if(data.results && data.results.length > 0) {
+                const target = data.results[0];
+                currentLat = target.latitude;
+                currentLon = target.longitude;
+                locationSource = query.length > 16 ? query.substring(0, 14).toUpperCase() + ".." : query.toUpperCase();
+                document.getElementById('inputLat').value = currentLat.toFixed(4);
+                document.getElementById('inputLon').value = currentLon.toFixed(4);
+                await fetchWeather(currentLat, currentLon);
+            } else {
+                if(overlayStatus) overlayStatus.innerText = "LOCATION NOT FOUND";
+            }
+        } catch(err) {
+            if(overlayStatus) overlayStatus.innerText = "API ERROR - TRY SHORT NAME";
+        }
+    }
+
     async function searchByCoordinates() {
         const lat = parseFloat(document.getElementById('inputLat').value);
         const lon = parseFloat(document.getElementById('inputLon').value);
         if(isNaN(lat) || isNaN(lon)) return;
-        
         currentLat = lat;
         currentLon = lon;
         locationSource = "CUSTOM COORDS";
-        
         try {
             const geoFetch = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${currentLat}&longitude=${currentLon}&localityLanguage=en`);
             const geoData = await geoFetch.json();
             locationSource = (geoData.city || geoData.locality || "CUSTOM COORDS").toUpperCase();
         } catch(e) {}
-        
         await fetchWeather(currentLat, currentLon);
     }
 
@@ -249,14 +337,10 @@
             const encodeTZ = encodeURIComponent(userTimezone);
             const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=${encodeTZ}`);
             const data = await r.json();
-            
             windSpeed = Math.round(data.current_weather.windspeed);
             weatherCode = data.current_weather.weathercode;
             currentTemp = Math.round(data.current_weather.temperature); 
-            
-            if(document.getElementById('windSlider')) {
-                document.getElementById('windSlider').value = windSpeed;
-            }
+            if(document.getElementById('windSlider')) document.getElementById('windSlider').value = windSpeed;
             setWeatherByCode(weatherCode);
         } catch(e) { 
             console.log("Weather API Error.");
@@ -267,7 +351,6 @@
         try {
             const response = await fetch('https://ipapi.co/json/');
             const data = await response.json();
-            
             if (data && data.latitude && data.longitude) {
                 currentLat = data.latitude;
                 currentLon = data.longitude;
@@ -279,10 +362,8 @@
             const lang = (navigator.language || "").toLowerCase();
             const rawOffset = new Date().getTimezoneOffset();
             const hoursOffset = -Math.round(rawOffset / 60);
-            
             locationSource = `GRID (UTC${hoursOffset >= 0 ? '+' : ''}${hoursOffset})`;
 
-            // GLOBAL MATRIX SYSTEM (TIME + LANGUAGE HOOKS)
             if (hoursOffset === 0) {
                 if (lang.startsWith('pt')) { currentLat = 38.7223; currentLon = -9.1393; locationSource = "LISBON"; }
                 else { currentLat = 51.5074; currentLon = -0.1278; locationSource = "LONDON"; }
@@ -360,12 +441,19 @@
         } catch (e) { return false; }
     }
 
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? { r: parseInt(result[1],16), g: parseInt(result[2],16), b: parseInt(result[3],16) } : {r:255,g:255,b:255};
+    }
+    function rgbToHex(r, g, b) {
+        return "#" + [r,g,b].map(x => { const hex = Math.floor(x).toString(16); return hex.length===1?"0"+hex:hex; }).join('');
+    }
+
     img.onload = () => {
         isDataReady = tryHarvestPixels();
         try { userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; } catch(e) {}
 
         const isIframe = window.self !== window.top;
-
         if (navigator.geolocation && !isIframe) {
             navigator.geolocation.getCurrentPosition(
                 async (pos) => {
@@ -380,9 +468,10 @@
                 }, 
                 async () => { await fetchLocationByIP(); }
             );
-        } else { fetchLocationByIP(); }
+        } else { await fetchLocationByIP(); }
 
         setInterval(async () => { await fetchWeather(currentLat, currentLon); }, 300000);
+        initMobileControls();   // ← tap + 5-second auto-hide on mobile
         animate();
     };
 
@@ -397,15 +486,13 @@
 
     function rotateRGB(r, g, b, angle) {
         const cosA = Math.cos(angle); const sinA = Math.sin(angle);
-        const rot = [
-            cosA + (1 - cosA) / 3, (1 - cosA) / 3 - Math.sqrt(1/3) * sinA, (1 - cosA) / 3 + Math.sqrt(1/3) * sinA,
-            (1 - cosA) / 3 + Math.sqrt(1/3) * sinA, cosA + (1 - cosA) / 3, (1 - cosA) / 3 - Math.sqrt(1/3) * sinA,
-            (1 - cosA) / 3 - Math.sqrt(1/3) * sinA, (1 - cosA) / 3 + Math.sqrt(1/3) * sinA, cosA + (1 - cosA) / 3
-        ];
+        const rot = [cosA+(1-cosA)/3, (1-cosA)/3-Math.sqrt(1/3)*sinA, (1-cosA)/3+Math.sqrt(1/3)*sinA,
+                     (1-cosA)/3+Math.sqrt(1/3)*sinA, cosA+(1-cosA)/3, (1-cosA)/3-Math.sqrt(1/3)*sinA,
+                     (1-cosA)/3-Math.sqrt(1/3)*sinA, (1-cosA)/3+Math.sqrt(1/3)*sinA, cosA+(1-cosA)/3];
         return {
-            r: Math.max(0, Math.min(255, r * rot[0] + g * rot[1] + b * rot[2])),
-            g: Math.max(0, Math.min(255, r * rot[3] + g * rot[4] + b * rot[5])),
-            b: Math.max(0, Math.min(255, r * rot[6] + g * rot[7] + b * rot[8]))
+            r: Math.max(0, Math.min(255, r*rot[0]+g*rot[1]+b*rot[2])),
+            g: Math.max(0, Math.min(255, r*rot[3]+g*rot[4]+b*rot[5])),
+            b: Math.max(0, Math.min(255, r*rot[6]+g*rot[7]+b*rot[8]))
         };
     }
 
@@ -414,141 +501,89 @@
     function wrap(val, max) { return ((val % max) + max) % max; }
 
     function getWeatherSymbol(weather, hour, code) {
-    if (weather === "CLEAR") {
-        return (hour >= 6 && hour < 19) ? "☀️" : "🌙";
-    }
-    if (weather === "RAIN") {
-        // code 65 is our Heavy Rain setting
-        return (code >= 65) ? "🌧️" : "🌦️"; 
-    }
-    switch (weather) {
-        case "CLOUDY": return "☁️";
-        case "STORM":  return "⚡";
-        case "SNOW":   return "❄️";
-        case "FOG":    return "🌫️";
-        default:       return "🌐";
-    }
-}
-
-function drawStatus(displayTime) {
-    if (!overlayStatus) return;
-    
-    const now = new Date();
-    const hour = (manualHour !== null) ? manualHour : now.getHours();
-    
-    // Pass the weatherCode into the symbol generator
-    const symbol = getWeatherSymbol(currentWeather, hour, weatherCode);
-    
-    overlayStatus.innerText = `${symbol} ${currentWeather} // 🕒 ${displayTime} // 🌡️ ${currentTemp}°C // 💨 ${windSpeed} KM/H // 📍 ${locationSource}`;
-}
-
-    function drawWeatherAccessories(topColor, bottomColor) {
-    const now = new Date();
-    const hour = (manualHour !== null) ? manualHour : now.getHours();
-    const isDaytime = (hour >= 6 && hour < 19);
-
-    // --- PHYSICS & ENVIRONMENT SYNC ---
-    const activeShiver = (typeof shiverY !== 'undefined') ? shiverY : 0;
-    
-    const eyeRowY = 63 + activeShiver;
-    const foreheadRowY = 46 + activeShiver;
-
-    // Determine target vertical alignment based on current scene state
-    let targetY = eyeRowY;
-    if (currentWeather === "CLEAR") {
-        targetY = isDaytime ? eyeRowY : foreheadRowY;
-    } else if (currentWeather === "CLOUDY" || currentWeather === "FOG") {
-        targetY = foreheadRowY;
-    }
-
-    // Define spatial parameters for the lenses
-    let leftX = 50;
-    let rightX = 67;
-    let slitY = targetY + 4;
-    let slitW = 9;
-    let slitH = 3;
-
-    // --- CREATE THE DYNAMIC GRADIENT FILL STYLE ---
-    let dynamicGradient = ctx.createLinearGradient(0, 0, 0, res);
-    dynamicGradient.addColorStop(0, topColor || "#ffaa00");
-    dynamicGradient.addColorStop(1, bottomColor || "#1a0033");
-
-    // ==========================================
-    // DYNAMIC PASTEL PALETTE SELECTOR
-    // ==========================================
-    let frameColor = "#FCE1E4"; // Default fallback: Pastel Rose
-    
-    switch (currentWeather) {
-        case "CLEAR":
-            // Warm, sun-kissed pastel yellow for day; soft twilight lavender for night
-            frameColor = isDaytime ? "#FCF6BD" : "#E8D7FF";
-            break;
-        case "CLOUDY":
-            frameColor = "#D6E2E9"; // Soft Misty Blue-Gray
-            break;
-        case "RAIN":
-            frameColor = "#A9DEF9"; // Fresh Pastel Sky Blue
-            break;
-        case "STORM":
-            frameColor = "#E4C1F9"; // Electric Lilac / Cosmic Purple
-            break;
-        case "SNOW":
-            frameColor = "#F0F3F4"; // Crisp Powder/Ice White
-            break;
-        case "FOG":
-            frameColor = "#E0E2E5"; // Muted Alabaster Gray
-            break;
-    }
-
-    // ==========================================
-    // DRAW GLASSES FRAME (ADDITIVE CURVY PIXELS)
-    // ==========================================
-    ctx.fillStyle = frameColor;
-    
-    // --- LEFT EYE FRAME (ROUNDED PATH) ---
-    ctx.fillRect(49, targetY, 11, 1);                  // Top row
-    ctx.fillRect(48, targetY + 1, 13, 9);              // Main middle body
-    ctx.fillRect(49, targetY + 10, 11, 1);             // Bottom row
-    
-    // --- RIGHT EYE FRAME (ROUNDED PATH) ---
-    ctx.fillRect(66, targetY, 11, 1);                  // Top row
-    ctx.fillRect(65, targetY + 1, 13, 9);              // Main middle body
-    ctx.fillRect(66, targetY + 10, 11, 1);             // Bottom row
-
-    // --- SYMMETRICAL TOP BRIDGE BAR ---
-    ctx.fillRect(61, targetY, 4, 4); 
-
-    // ==========================================
-    // RENDER LENSES WITH DYNAMIC BACKDROP
-    // ==========================================
-    ctx.fillStyle = dynamicGradient; 
-    ctx.fillRect(leftX, slitY, slitW, slitH);
-    ctx.fillRect(rightX, slitY, slitW, slitH);
-
-    // --- 🌦️/🌧️ RAIN WEATHER WIPERS ---
-    if (currentWeather === "RAIN") {
-        let rainSeverity = (weatherCode >= 65) ? 2.0 : 1.0;
-        let speedFactor = (0.015 + (windSpeed * 0.0008)) * rainSeverity;
-        let totalWidthTicks = 16; 
-        let currentTick = Math.floor(Date.now() * speedFactor) % totalWidthTicks;
-        let wiperX = (currentTick <= 8) ? currentTick : (totalWidthTicks - currentTick);
-        
-        ctx.fillStyle = "#ffffff"; 
-        ctx.fillRect(50 + wiperX, eyeRowY + 4, 1, 3); 
-        ctx.fillRect(67 + wiperX, eyeRowY + 4, 1, 3); 
-    }
-
-    // --- ⚡ STORM WEATHER SPARKS ---
-    if (currentWeather === "STORM") {
-        if (flashTimer > 0) {
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(50 + Math.random()*7, eyeRowY + 4 + Math.random()*2, 2, 1);
-            ctx.fillRect(67 + Math.random()*7, eyeRowY + 4 + Math.random()*2, 2, 1);
+        if (weather === "CLEAR") return (hour >= 6 && hour < 19) ? "☀️" : "🌙";
+        if (weather === "RAIN") return (code >= 65) ? "🌧️" : "🌦️"; 
+        switch (weather) {
+            case "CLOUDY": return "☁️";
+            case "STORM":  return "⚡";
+            case "SNOW":   return "❄️";
+            case "FOG":    return "🌫️";
+            default:       return "🌐";
         }
     }
-}
-	
-	function drawBolt() {
+
+    function drawStatus(displayTime) {
+        if (!overlayStatus) return;
+        const hour = (manualHour !== null) ? manualHour : new Date().getHours();
+        const symbol = getWeatherSymbol(currentWeather, hour, weatherCode);
+        overlayStatus.innerText = `${symbol} ${currentWeather} // 🕒 ${displayTime} // 🌡️ ${currentTemp}°C // 💨 ${windSpeed} KM/H // 📍 ${locationSource}`;
+    }
+
+    function drawWeatherAccessories(topColor, bottomColor, jitterX = 0, jitterY = 0, mod = {r:1,g:1,b:1}) {
+        const hour = (manualHour !== null) ? manualHour : new Date().getHours();
+        const isDaytime = (hour >= 6 && hour < 19);
+
+        const jitteredEyeY = 63 + jitterY;
+        const jitteredForeheadY = 46 + jitterY;
+
+        let targetY = jitteredEyeY;
+        if (currentWeather === "CLEAR") targetY = isDaytime ? jitteredEyeY : jitteredForeheadY;
+        else if (currentWeather === "CLOUDY" || currentWeather === "FOG") targetY = jitteredForeheadY;
+
+        let leftX = 50, rightX = 67, slitY = targetY + 2, slitW = 9, slitH = 7;
+
+        let dynamicGradient = ctx.createLinearGradient(0, 0, 0, res);
+        dynamicGradient.addColorStop(0, topColor || "#ffaa00");
+        dynamicGradient.addColorStop(1, bottomColor || "#1a0033");
+
+        let frameColor = "#FCE1E4";
+        switch (currentWeather) {
+            case "CLEAR": frameColor = isDaytime ? "#E6B2BA" : "#C599B6"; break;
+            case "CLOUDY": frameColor = "#D6E2E9"; break;
+            case "RAIN": frameColor = "#A9DEF9"; break;
+            case "STORM": frameColor = "#E4C1F9"; break;
+            case "SNOW": frameColor = "#F0F3F4"; break;
+            case "FOG": frameColor = "#ADB2D4"; break;
+        }
+
+        let rgb = hexToRgb(frameColor);
+        rgb.r = Math.max(0, Math.min(255, Math.floor(rgb.r * mod.r)));
+        rgb.g = Math.max(0, Math.min(255, Math.floor(rgb.g * mod.g)));
+        rgb.b = Math.max(0, Math.min(255, Math.floor(rgb.b * mod.b)));
+        frameColor = rgbToHex(rgb.r, rgb.g, rgb.b);
+
+        ctx.fillStyle = frameColor;
+        ctx.fillRect(49 + jitterX, targetY, 11, 1);
+        ctx.fillRect(48 + jitterX, targetY + 1, 13, 9);
+        ctx.fillRect(49 + jitterX, targetY + 10, 11, 1);
+        ctx.fillRect(66 + jitterX, targetY, 11, 1);
+        ctx.fillRect(65 + jitterX, targetY + 1, 13, 9);
+        ctx.fillRect(66 + jitterX, targetY + 10, 11, 1);
+        ctx.fillRect(61 + jitterX, targetY, 4, 4); 
+
+        ctx.fillStyle = dynamicGradient; 
+        ctx.fillRect(leftX + jitterX, slitY, slitW, slitH);
+        ctx.fillRect(rightX + jitterX, slitY, slitW, slitH);
+
+        if (currentWeather === "RAIN") {
+            let rainSeverity = (weatherCode >= 65) ? 2.0 : 1.0;
+            let speedFactor = (0.015 + (windSpeed * 0.0008)) * rainSeverity;
+            let totalWidthTicks = 16; 
+            let currentTick = Math.floor(Date.now() * speedFactor) % totalWidthTicks;
+            let wiperX = (currentTick <= 8) ? currentTick : (totalWidthTicks - currentTick);
+            ctx.fillStyle = "#ffffff"; 
+            ctx.fillRect(50 + wiperX + jitterX, jitteredEyeY + 2, 1, 7); 
+            ctx.fillRect(67 + wiperX + jitterX, jitteredEyeY + 2, 1, 7); 
+        }
+
+        if (currentWeather === "STORM" && flashTimer > 0) {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(50 + Math.random()*7 + jitterX, jitteredEyeY + 4 + Math.random()*2, 2, 1);
+            ctx.fillRect(67 + Math.random()*7 + jitterX, jitteredEyeY + 4 + Math.random()*2, 2, 1);
+        }
+    }
+
+    function drawBolt() {
         ctx.strokeStyle = "white"; let x = Math.random() * res; let y = 0;
         for(let i=0; i<4; i++) {
             ctx.lineWidth = Math.max(0.5, 4 - i); ctx.beginPath(); ctx.moveTo(x, y);
@@ -563,7 +598,8 @@ function drawStatus(displayTime) {
             requestAnimationFrame(animate); return;
         }
 
-        const time = Date.now(); const now = new Date();
+        const time = Date.now(); 
+        const now = new Date();
         const hour = (manualHour !== null) ? manualHour : now.getHours();
         const displayTime = (manualHour !== null) ? hour + ":00" : now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         
@@ -576,47 +612,42 @@ function drawStatus(displayTime) {
         else if (currentWeather === "SNOW") shiver = 1.3;
         else if (currentWeather === "FOG") shiver = 1.4;
 
-        let mod = { r: 1.25, g: 1.15, b: 1.25, sat: 1.2 };
-        if (hour >= 6 && hour < 11) mod = { r: 1.4, g: 1.1, b: 1.3, sat: 1.3 };
-        else if (hour >= 18 && hour < 22) mod = { r: 0.8, g: 0.7, b: 0.9, sat: 0.7 };
-        else if (hour >= 22 || hour < 6) mod = { r: 0.5, g: 0.5, b: 0.55, sat: 0.4 };
-        
-        if (currentWeather === "FOG") mod.sat *= 0.35;
-        if (currentWeather === "CLOUDY") { mod.r *= 0.75; mod.g *= 0.75; mod.b *= 0.8; mod.sat *= 0.6; }
+        const jitterX = (Math.random() - 0.5) * shiver;
+        const jitterY = (Math.random() - 0.5) * shiver;
+
+        let mod = { r: 1.25, g: 1.15, b: 1.25 };
+        if (hour >= 6 && hour < 11) mod = { r: 1.4, g: 1.1, b: 1.3 };
+        else if (hour >= 18 && hour < 22) mod = { r: 0.8, g: 0.7, b: 0.9 };
+        else if (hour >= 22 || hour < 6) mod = { r: 0.5, g: 0.5, b: 0.55 };
 
         let tIdx = 0;
         for (let y = 0; y < res; y++) {
             for (let x = 0; x < res; x++) {
                 let srcX = Math.round(x + (Math.random() - 0.5) * shiver);
                 let srcY = Math.round(y + (Math.random() - 0.5) * shiver);
-                srcX = Math.max(0, Math.min(res - 1, srcX)); srcY = Math.max(0, Math.min(res - 1, srcY));
+                srcX = Math.max(0, Math.min(res - 1, srcX)); 
+                srcY = Math.max(0, Math.min(res - 1, srcY));
                 
                 let p = originalPixels[srcY * res + srcX];
                 let cp = rotateRGB(p.r, p.g, p.b, colorAngle);
                 let avg = (cp.r + cp.g + cp.b) / 3;
                 
-                d[tIdx]     = (cp.r * mod.sat + avg * (1 - mod.sat)) * mod.r; 
-                d[tIdx + 1] = (cp.g * mod.sat + avg * (1 - mod.sat)) * mod.g; 
-                d[tIdx + 2] = (cp.b * mod.sat + avg * (1 - mod.sat)) * mod.b; 
+                d[tIdx]     = (cp.r * 1.2 + avg * (1 - 1.2)) * mod.r; 
+                d[tIdx + 1] = (cp.g * 1.2 + avg * (1 - 1.2)) * mod.g; 
+                d[tIdx + 2] = (cp.b * 1.2 + avg * (1 - 1.2)) * mod.b; 
                 d[tIdx + 3] = 255;                                            
                 tIdx += 4;
             }
         }
 
-        // --- NEW GRADIENT DETECTOR LOGIC ---
-        // Top edge color sampling index (x: 64, y: 0)
         let topIndex = (0 * res + 64) * 4;
         let topColor = `rgb(${Math.floor(d[topIndex])}, ${Math.floor(d[topIndex+1])}, ${Math.floor(d[topIndex+2])})`;
 
-        // Bottom edge color sampling index (x: 64, y: 127)
         let bottomIndex = ((res - 1) * res + 64) * 4;
         let bottomColor = `rgb(${Math.floor(d[bottomIndex])}, ${Math.floor(d[bottomIndex+1])}, ${Math.floor(d[bottomIndex+2])})`;
 
-        // Commit the pixel buffer values directly onto the canvas view
         ctx.putImageData(imgData, 0, 0);
-        
-        // Pass the sampled upper and lower gradient strings right to the accessories drawer
-        drawWeatherAccessories(topColor, bottomColor);
+        drawWeatherAccessories(topColor, bottomColor, jitterX, jitterY, mod);
 
         if (currentWeather === "RAIN" || currentWeather === "STORM") {
             ctx.strokeStyle = "rgba(180, 220, 255, 0.7)"; ctx.lineWidth = 1;
@@ -638,9 +669,12 @@ function drawStatus(displayTime) {
         } else if (currentWeather === "FOG") {
             ctx.save();
             for(let j=0; j<9; j++) {
-                let fx = wrap((time * 0.005 * windSpeed) + (j*45), res + 140) - 70; let fy = (j % 3) * 45 + 10; 
+                let fx = wrap((time * 0.005 * windSpeed) + (j*45), res + 140) - 70; 
+                let fy = (j % 3) * 45 + 10; 
                 let mist = ctx.createRadialGradient(fx, fy, 5, fx, fy, 55);
-                mist.addColorStop(0, "rgba(225, 235, 255, 0.50)"); mist.addColorStop(0.4, "rgba(225, 235, 255, 0.25)"); mist.addColorStop(1, "rgba(225, 235, 255, 0.0)");
+                mist.addColorStop(0, "rgba(225, 235, 255, 0.50)");
+                mist.addColorStop(0.4, "rgba(225, 235, 255, 0.25)");
+                mist.addColorStop(1, "rgba(225, 235, 255, 0.0)");
                 ctx.fillStyle = mist; ctx.beginPath(); ctx.arc(fx, fy, 55, 0, Math.PI * 2); ctx.fill();
             }
             ctx.restore();
