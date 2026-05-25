@@ -169,6 +169,13 @@
                 <button onclick="location.reload()" style="font-weight:bold; background:#0f0; color:#000;">SYNC LIVE</button>
                 <button onclick="toggleDashboard()">MANUAL SEARCH</button>
             </div>
+            
+            <!-- NEW: Separate GLASSES line exactly as requested -->
+            <div class="group">
+                <strong>GLASSES:</strong>
+                <button onclick="toggleGlasses()" id="glassesBtn" style="background:#0f0; color:#000; font-weight:bold;">ON</button>
+            </div>
+
             <div class="group">
                 <strong>WIND:</strong>
                 <input type="range" min="-100" max="100" value="15" id="windSlider" oninput="windSpeed = parseInt(this.value)">
@@ -221,6 +228,9 @@
     let locationSource = "IDENTIFYING...";
     let userTimezone = "UTC";
 
+    // Glasses toggle state
+    let showGlasses = true;
+
     const fallbackLat = 50.8504;
     const fallbackLon = 4.3488;
     let currentLat = fallbackLat;
@@ -236,6 +246,17 @@
     function toggleDashboard() {
         const panel = document.getElementById('locationDashboard');
         panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // Toggle glasses ON / OFF
+    function toggleGlasses() {
+        showGlasses = !showGlasses;
+        const btn = document.getElementById('glassesBtn');
+        if (btn) {
+            btn.innerText = showGlasses ? "ON" : "OFF";
+            btn.style.background = showGlasses ? "#0f0" : "#111";
+            btn.style.color = showGlasses ? "#000" : "#0f0";
+        }
     }
 
     // Auto-hide on mobile after 5 seconds + tap to toggle
@@ -268,9 +289,7 @@
         });
     }
 
-    // (rest of your location / weather functions unchanged)
-    async function searchByCityName() { /* ... same as before ... */ 
-        // (your original searchByCityName code here - unchanged)
+    async function searchByCityName() {
         let rawQuery = document.getElementById('inputCity').value;
         if(!rawQuery) return;
         let query = rawQuery.replace(/\u00ad/g, '').trim();
@@ -306,7 +325,7 @@
         }
     }
 
-    async function searchByCoordinates() { /* ... same ... */ 
+    async function searchByCoordinates() {
         const lat = parseFloat(document.getElementById('inputLat').value);
         const lon = parseFloat(document.getElementById('inputLon').value);
         if(isNaN(lat) || isNaN(lon)) return;
@@ -319,7 +338,7 @@
         await fetchWeather(currentLat, currentLon);
     }
 
-    async function fetchWeather(lat, lon) { /* ... same ... */ 
+    async function fetchWeather(lat, lon) {
         try {
             const encodeTZ = encodeURIComponent(userTimezone);
             const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=${encodeTZ}`);
@@ -332,8 +351,7 @@
         } catch(e) { console.log("Weather API Error."); }
     }
 
-    async function fetchLocationByIP() { /* ... same as your last version ... */ 
-        // (your full fetchLocationByIP code here - unchanged)
+    async function fetchLocationByIP() {
         try {
             const response = await fetch('https://ipapi.co/json/');
             const data = await response.json();
@@ -347,7 +365,7 @@
             const rawOffset = new Date().getTimezoneOffset();
             const hoursOffset = -Math.round(rawOffset / 60);
             locationSource = `GRID (UTC${hoursOffset >= 0 ? '+' : ''}${hoursOffset})`;
-            // (all your if/else location fallbacks unchanged)
+
             if (hoursOffset === 0) {
                 if (lang.startsWith('pt')) { currentLat = 38.7223; currentLon = -9.1393; locationSource = "LISBON"; }
                 else { currentLat = 51.5074; currentLon = -0.1278; locationSource = "LONDON"; }
@@ -364,15 +382,51 @@
                 else if (lang.startsWith('ar')) { currentLat = 30.0444; currentLon = 31.2357; locationSource = "CAIRO"; }
                 else if (lang.includes('za')) { currentLat = -26.2041; currentLon = 28.0473; locationSource = "JOHANNESBURG"; }
                 else { currentLat = 50.8504; currentLon = 4.3488; locationSource = "BRUSSELS"; }
-            } else if (hoursOffset === 3) { /* ... rest of your timezone logic ... */ 
-                // (I kept it short here for brevity - copy your full block from previous version)
+            } else if (hoursOffset === 3) {
+                if (lang.startsWith('el')) { currentLat = 37.9838; currentLon = 23.7275; locationSource = "ATHENS"; }
+                else if (lang.startsWith('tr')) { currentLat = 41.0082; currentLon = 28.9784; locationSource = "ISTANBUL"; }
+                else if (lang.startsWith('he')) { currentLat = 32.0853; currentLon = 34.7818; locationSource = "TEL AVIV"; }
+                else if (lang.startsWith('ar')) { currentLat = 24.7136; currentLon = 46.6753; locationSource = "RIYADH"; }
+                else if (lang.startsWith('ru')) { currentLat = 55.7558; currentLon = 37.6173; locationSource = "MOSCOW"; }
+                else { currentLat = -1.2921; currentLon = 36.8219; locationSource = "NAIROBI"; }
+            } else if (hoursOffset === 4) {
+                currentLat = 25.2048; currentLon = 55.2708; locationSource = "DUBAI";
+            } else if (hoursOffset === 5 || hoursOffset === 6) {
+                if (lang.startsWith('ur')) { currentLat = 24.8607; currentLon = 67.0011; locationSource = "KARACHI"; }
+                else { currentLat = 19.0760; currentLon = 72.8777; locationSource = "MUMBAI"; }
+            } else if (hoursOffset === 7) {
+                if (lang.startsWith('th')) { currentLat = 13.7563; currentLon = 100.5018; locationSource = "BANGKOK"; }
+                else if (lang.startsWith('vi')) { currentLat = 21.0285; currentLon = 105.8542; locationSource = "HANOI"; }
+                else { currentLat = -6.2088; currentLon = 106.8456; locationSource = "JAKARTA"; }
+            } else if (hoursOffset === 8) {
+                if (lang.startsWith('zh')) { currentLat = 31.2304; currentLon = 121.4737; locationSource = "SHANGHAI"; }
+                else if (lang.startsWith('tl')) { currentLat = 14.5995; currentLon = 120.9842; locationSource = "MANILA"; }
+                else { currentLat = 1.3521; currentLon = 103.8198; locationSource = "SINGAPORE"; }
+            } else if (hoursOffset === 9) {
+                if (lang.startsWith('ko')) { currentLat = 37.5665; currentLon = 126.9780; locationSource = "SEOUL"; }
+                else { currentLat = 35.6762; currentLon = 139.6503; locationSource = "TOKYO"; }
+            } else if (hoursOffset >= 10 && hoursOffset <= 13) {
+                currentLat = -33.8688; currentLon = 151.2093; locationSource = "SYDNEY";
+            } else if (hoursOffset === -3) {
+                if (lang.startsWith('es')) { currentLat = -34.6037; currentLon = -58.3816; locationSource = "BUENOS AIRES"; }
+                else { currentLat = -23.5505; currentLon = -46.6333; locationSource = "SAO PAULO"; }
+            } else if (hoursOffset === -4 || hoursOffset === -5) {
+                if (lang.startsWith('es')) { currentLat = 4.7110; currentLon = -74.0721; locationSource = "BOGOTA"; }
+                else if (lang.startsWith('fr')) { currentLat = 45.5017; currentLon = -73.5673; locationSource = "MONTREAL"; }
+                else { currentLat = 40.7128; currentLon = -74.0060; locationSource = "NEW YORK"; }
+            } else if (hoursOffset === -6) {
+                if (lang.startsWith('es')) { currentLat = 19.4326; currentLon = -99.1332; locationSource = "MEXICO CITY"; }
+                else { currentLat = 41.8781; currentLon = -87.6298; locationSource = "CHICAGO"; }
+            } else if (hoursOffset === -7 || hoursOffset === -8) {
+                currentLat = 34.0522; currentLon = -118.2437; locationSource = "LOS ANGELES";
+            } else {
+                currentLat = fallbackLat; currentLon = fallbackLon; locationSource = "BRUSSELS (default)";
             }
-            // ... (all remaining else-if blocks unchanged)
         }
         await fetchWeather(currentLat, currentLon);
     }
 
-    function tryHarvestPixels() { /* unchanged */ 
+    function tryHarvestPixels() {
         if (!img.complete || img.naturalWidth === 0) return false;
         try {
             const tCanvas = document.createElement('canvas');
@@ -389,7 +443,7 @@
         } catch (e) { return false; }
     }
 
-    function hexToRgb(hex) { /* unchanged */ 
+    function hexToRgb(hex) {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? { r: parseInt(result[1],16), g: parseInt(result[2],16), b: parseInt(result[3],16) } : {r:255,g:255,b:255};
     }
@@ -419,11 +473,11 @@
         } else { fetchLocationByIP(); }
 
         setInterval(async () => { await fetchWeather(currentLat, currentLon); }, 300000);
-        initMobileControls();   // ← NEW: enables tap-to-show on iPhone
+        initMobileControls();
         animate();
     };
 
-    function setWeatherByCode(code) { /* unchanged */ 
+    function setWeatherByCode(code) {
         if (code <= 1) currentWeather = "CLEAR";
         else if (code <= 3) currentWeather = "CLOUDY";
         else if (code >= 95) currentWeather = "STORM";
@@ -432,7 +486,7 @@
         else if (code >= 45) currentWeather = "FOG";
     }
 
-    function rotateRGB(r, g, b, angle) { /* unchanged */ 
+    function rotateRGB(r, g, b, angle) {
         const cosA = Math.cos(angle); const sinA = Math.sin(angle);
         const rot = [cosA+(1-cosA)/3, (1-cosA)/3-Math.sqrt(1/3)*sinA, (1-cosA)/3+Math.sqrt(1/3)*sinA,
                      (1-cosA)/3+Math.sqrt(1/3)*sinA, cosA+(1-cosA)/3, (1-cosA)/3-Math.sqrt(1/3)*sinA,
@@ -448,7 +502,7 @@
     function setTime(h) { manualHour = h; }
     function wrap(val, max) { return ((val % max) + max) % max; }
 
-    function getWeatherSymbol(weather, hour, code) { /* unchanged */ 
+    function getWeatherSymbol(weather, hour, code) {
         if (weather === "CLEAR") return (hour >= 6 && hour < 19) ? "☀️" : "🌙";
         if (weather === "RAIN") return (code >= 65) ? "🌧️" : "🌦️"; 
         switch (weather) {
@@ -460,7 +514,7 @@
         }
     }
 
-    function drawStatus(displayTime) { /* unchanged */ 
+    function drawStatus(displayTime) {
         if (!overlayStatus) return;
         const hour = (manualHour !== null) ? manualHour : new Date().getHours();
         const symbol = getWeatherSymbol(currentWeather, hour, weatherCode);
@@ -468,6 +522,8 @@
     }
 
     function drawWeatherAccessories(topColor, bottomColor, jitterX = 0, jitterY = 0, mod = {r:1,g:1,b:1}) {
+        if (!showGlasses) return;
+
         const hour = (manualHour !== null) ? manualHour : new Date().getHours();
         const isDaytime = (hour >= 6 && hour < 19);
 
@@ -494,7 +550,6 @@
             case "FOG": frameColor = "#ADB2D4"; break;
         }
 
-        // Time-of-day tint (exactly like the skull)
         let rgb = hexToRgb(frameColor);
         rgb.r = Math.max(0, Math.min(255, Math.floor(rgb.r * mod.r)));
         rgb.g = Math.max(0, Math.min(255, Math.floor(rgb.g * mod.g)));
@@ -532,7 +587,7 @@
         }
     }
 
-    function drawBolt() { /* unchanged */ 
+    function drawBolt() {
         ctx.strokeStyle = "white"; let x = Math.random() * res; let y = 0;
         for(let i=0; i<4; i++) {
             ctx.lineWidth = Math.max(0.5, 4 - i); ctx.beginPath(); ctx.moveTo(x, y);
