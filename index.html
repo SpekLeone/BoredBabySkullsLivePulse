@@ -160,27 +160,24 @@
                 <button onclick="setWeather('STORM', 95)">STORM</button>
                 <button onclick="setWeather('FOG', 45)">FOG</button>
             </div>
+            
             <div class="group">
                 <strong>TIME:</strong>
                 <button onclick="setTime(8)">MORNING</button>
                 <button onclick="setTime(14)">AFTERNOON</button>
                 <button onclick="setTime(19)">EVENING</button>
                 <button onclick="setTime(23)">NIGHT</button>
-                <button onclick="location.reload()" style="font-weight:bold; background:#0f0; color:#000;">SYNC LIVE</button>
-                <button onclick="toggleDashboard()">MANUAL SEARCH</button>
-            </div>
-            
-            <!-- NEW: Separate GLASSES line exactly as requested -->
-            <div class="group">
-                <strong>GLASSES:</strong>
-                <button onclick="toggleGlasses()" id="glassesBtn" style="background:#0f0; color:#000; font-weight:bold;">ON</button>
-            </div>
-
-            <div class="group">
-                <strong>WIND:</strong>
+				<strong>WIND:</strong>
                 <input type="range" min="-100" max="100" value="15" id="windSlider" oninput="windSpeed = parseInt(this.value)">
             </div>
 
+            <div class="group">
+				<button onclick="location.reload()" style="font-weight:bold; background:#0f0; color:#000;">SYNC LIVE</button>
+				<button onclick="toggleDashboard()">MANUAL SEARCH</button> 
+				<strong>GLASSES:</strong>
+                <button onclick="toggleGlasses()" id="glassesBtn" style="background:#0f0; color:#000; font-weight:bold;">ON</button>                               
+            </div>
+			
             <div id="locationDashboard">
                 <div class="input-row">
                     <label>BY CITY:</label>
